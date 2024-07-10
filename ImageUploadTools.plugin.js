@@ -143,7 +143,8 @@ module.exports = (Plugin, Library) => ({
                     console.log(`Converted image size ${outputImageFile.file.size} exceeds max size ${mySettings.imageMaxFileSize}.`);
 
                     if (toMimeType === 'image/jpeg' || toMimeType === 'image/webp') {
-                        const newQuality = mySettings.imageQuality * 0.9;
+                        const reductionRatio = map(mySettings.imageMaxFileSize / outputImageFile.file.size, 0.0, 1.0, 0.5, 0.92);
+                        const newQuality = quality * reductionRatio;
                         console.log(`Rerunning conversion with quality ${mySettings.imageQuality}->${newQuality.toFixed(2)}.`);
                         outputImageFile = await convertImage(originalImage, iteration + 1, newQuality);
                     } else {
