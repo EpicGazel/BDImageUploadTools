@@ -1,10 +1,10 @@
 /**
  * @name ImageUploadTools
- * @version 0.0.1
+ * @version 0.0.2
  * @description Automatically convert uploaded images to another format, shrink dimensions, or ensure below max file size.
  * @author Gazel
- * @source ...
- * @updateUrl ...
+ * @source https://github.com/EpicGazel/BDImageUploadTools
+ * @updateUrl https://raw.githubusercontent.com/EpicGazel/BDImageUploadTools/main/ImageUploadTools.plugin.js
  * @website ...
  * @donate https://ko-fi.com/gazel
  */
@@ -22,6 +22,7 @@ var mySettings = {
     },
     imageQuality: 0.9, // 0.0 - 1.0, only for jpeg and webp
     imageMaxFileSize: Infinity, //24.5 * 1000 * 1000, //in bytes, non-nitro limit is 25MB
+    imageMinFileSize: 0, // Minimum file size (in bytes) to be converted, to disabled, set to 0
     maxShrinkIterationLimit: 15,
     strictDimensionLimit: false, // If true, image will be resized if it is larger than the max width or height
     imageMaxWidth: 1920,
@@ -189,7 +190,7 @@ module.exports = (Plugin, Library) => ({
             }
             const convertedFilesPromises = files.map(async (file) => {
                 // Check if the file type is in the list of supported formats
-                if (mySettings.imageFormats[file.file.type]) {
+                if (mySettings.imageFormats[file.file.type] && file.file.size >= mySettings.imageMinFileSize) {
                     // Convert AVIF to WebP format
                     console.log(`Converting image ${file.file.type} -> ${mySettings.imageFormats[file.file.type]}`);
                     try {
@@ -200,7 +201,10 @@ module.exports = (Plugin, Library) => ({
                         return file;
                     }
                 } else {
-                    console.log("Skipping image not in file list...");
+                    if (!mySettings.imageFormats[file.file.type])
+                        console.log(`Skipping image, file type ${file.file.type} is not in imageFormats list...`);
+                    else if (file.file.size < mySettings.imageMinFileSize)
+                        console.log(`Skipping image, file size ${file.file.size} is less than min size ${mySettings.imageMinFileSize}...`);
                     return file;
                 }
             });
